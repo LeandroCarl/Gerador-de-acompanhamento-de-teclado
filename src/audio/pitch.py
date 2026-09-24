@@ -35,12 +35,12 @@ def extract_f0_pyin(y, sr, fmin=65.0, fmax=1046.0, frame_length=2048, hop_length
 
     return times, frequency_clean, confidence_clean
 
-def listen_beats(y, sr, bpm, beats_per_bar=4, anacruse_beats=0.0):
+def listen_beats(y, sr, bpm, beats_per_bar=4, offset=0.0):
     duracao_total = len(y) / sr
     tempo_batida = 60.0 / bpm
     
     # 1. Calcula quando o PRIMEIRO tempo forte (Downbeat) acontece no áudio
-    t_primeiro_downbeat = anacruse_beats * tempo_batida
+    t_primeiro_downbeat = offset * tempo_batida
 
     # 2. Gera os tempos fortes (1500 Hz) a partir do primeiro downbeat
     beat_times_fortes = np.arange(t_primeiro_downbeat, duracao_total, tempo_batida * beats_per_bar)
@@ -83,34 +83,127 @@ def listen_beats(y, sr, bpm, beats_per_bar=4, anacruse_beats=0.0):
     
     ipd.display(ipd.Audio(audio_mix, rate=sr))
 
-def cut_vocal(
-    caminho_audio, 
-    bpm=90, 
-    compasso_inicio=1, 
-    compasso_fim=4, 
+def extract_vocal_activity(
+    times,
+    frequency,
+    confidence,
+    bpm,
+    offset=0.0,
     beats_per_bar=4,
-    offset=0.0,  # 1 tempo de anacruse (duas colcheias no tempo 4)
-    sr=22050
+    conf_thresh=0.0,
+    min_voiced_ratio=0.15,
+    total_duration=None,
 ):
+    """Calcula a atividade vocal por compasso utilizando as métricas extraídas pelo pYIN.
+
+    Args:
+        times (np.ndarray): Vetor de timestamps em segundos dos frames do pYIN.
+        frequency (np.ndarray): Vetor de frequências F0 (Hz).
+        confidence (np.ndarray): Probabilidade/grau de confiança do tom.
+        bpm (float): Tempos por minuto.
+        beats_per_bar (int): Batidas por compasso.
+        conf_thresh (float): Limiar mínimo de confiança para considerar o frame
+          como voz válida.
+        min_voiced_ratio (float): Proporção mínima de frames com voz no
+          compasso (ex: 0.15 = 15%) para considerar o compasso ativo.
+        total_duration (float, optional): Duração total em segundos. Se None,
+          usa o último timestamp.
+
+    Returns:
+        list[bool]: Lista booleana com True para compassos com canto e False
+        para pausas.
     """
-    Recorta o áudio vocal dos compassos informados, no bpm informado, 
-    garantindo que a grade considere um deslocamento inicial.
+    duracao_compasso_seg = (60.0 / bpm) * beats_per_bar
+    t_anacruse = offset * (60.0 / bpm)
+    # Determina a duração total para calcular a quantidade de compassos
+    if total_duration is None:
+        total_duration = times[-1] if len(times) > 0 else 0.0
+
+    total_compassos = int(np.ceil((total_duration - t_anacruse)/ duracao_compasso_seg))
+    atividade = []
+
+    for i in range(total_compassos):
+        t_inicio = t_anacruse + i * duracao_compasso_seg
+        t_fim = t_inicio + duracao_compasso_seg
+
+        # Recorta os frames do pYIN pertencentes ao compasso atual
+        mask_compasso = (times >= t_inicio) & (times < t_fim)
+        freq_compasso = frequency[mask_compasso]
+        conf_compasso = confidence[mask_compasso]
+
+        if len(freq_compasso) == 0:
+            atividade.append(False)
+            continue
+
+        # Identifica frames onde há frequência válida e confiança acima do limiar
+        frames_com_voz = (freq_compasso > 0.0) & (conf_compasso >= conf_thresh)
+
+        # Ratio de frames cantados em relação ao total de frames do compasso
+        razao_cantada = np.sum(frames_com_voz) / len(freq_compasso)
+
+        # O compasso é considerado ativo se a proporção ultrapassar o mínimo configurado
+        atividade.append(razao_cantada >= min_voiced_ratio)
+
+    return atividade
+
+def cut_vocal(
+    caminho_audio,
+    bpm=90,
+    compasso_inicio=1,
+    compasso_fim=4,
+    beats_per_bar=4,
+    offset=0.0,
+    detect_first_onset=True,
+    sr=22050,
+):
+    """Recorta o áudio vocal alinhando a grade temporal ao primeiro ataque vocal detectado.
+
+    Args:
+        caminho_audio (str): Caminho do arquivo de áudio vocal.
+        bpm (float): Tempos por minuto.
+        compasso_inicio (int): Compasso inicial do recorte (base 1).
+        compasso_fim (int): Compasso final do recorte.
+        beats_per_bar (int): Batidas por compasso.
+        offset (float): Deslocamento manual em tempos (ex: anacruse).
+        detect_first_onset (bool): Se True, localiza o início real do som vocal
+          via Librosa.
+        sr (int): Taxa de amostragem.
+
+    Returns:
+        tuple[np.ndarray, int]: Áudio recortado e taxa de amostragem.
     """
     y, sr = librosa.load(caminho_audio, sr=sr, mono=True)
-    
+
     segundo_por_tempo = 60.0 / bpm
     duracao_compasso = segundo_por_tempo * beats_per_bar
 
-    # O primeiro tempo forte (downbeat) ocorre APÓS o tempo da anacruse
-    t_primeiro_downbeat = offset * segundo_por_tempo
+    # Ponto de partida padrão baseado apenas no offset teórico
+    t_referencia = offset * segundo_por_tempo
 
-    # O recorte para o Compasso 1 começa no tempo forte (ou inclui a anacruse, dependendo do objetivo)
-    tempo_inicio_sec = (compasso_inicio - 1) * duracao_compasso + t_primeiro_downbeat
-    tempo_fim_sec = compasso_fim * duracao_compasso + t_primeiro_downbeat
+    if detect_first_onset:
+        # 1. Calcula a curva de força de ataques (onset envelope)
+        onset_env = librosa.onset.onset_strength(y=y, sr=sr)
 
-    # Converte em amostras (samples)
-    s_inicio = int(tempo_inicio_sec * sr)
-    s_fim = int(tempo_fim_sec * sr)
+        # 2. Localiza os tempos de onset. backtrack=True busca o vale de energia
+        # imediatamente anterior ao pico, ideal para vozes que sobram no ataque.
+        onsets = librosa.onset.onset_detect(
+            y=y, sr=sr, onset_envelope=onset_env, units="time", backtrack=True
+        )
+
+        # 3. Alinha o primeiro tempo forte ao instante do primeiro ataque detectado
+        if len(onsets) > 0:
+            primeiro_onset_sec = onsets[0]
+            t_referencia = primeiro_onset_sec + (offset * segundo_por_tempo)
+
+    # Cálculo dos limites de tempo do corte
+    tempo_inicio_sec = (
+        compasso_inicio - 1
+    ) * duracao_compasso + t_referencia
+    tempo_fim_sec = compasso_fim * duracao_compasso + t_referencia
+
+    # Converte para índices do vetor e aplica travas de segurança
+    s_inicio = max(0, int(tempo_inicio_sec * sr))
+    s_fim = min(len(y), int(tempo_fim_sec * sr))
 
     y_recortado = y[s_inicio:s_fim]
 
