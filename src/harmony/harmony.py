@@ -106,13 +106,3 @@ def generate_harmonic_field(tom_entrada):
             "notas": notas_do_acorde
         }
     return campo
-
-
-# Custo de ir de uma função para outra (assimétrico, de propósito:
-# harmonia tonal tem "sentido" — dominante puxa para tônica, mas
-# tônica não puxa para dominante com a mesma força).
-CUSTO_FUNCAO = {
-    ("T", "T"): 0.4, ("T", "SD"): 0.2, ("T", "D"): 0.5,
-    ("SD", "T"): 0.3, ("SD", "SD"): 0.6, ("SD", "D"): 0.1,
-    ("D", "T"): 0.0, ("D", "SD"): 1.6, ("D", "D"): 0.7,
-}
