@@ -1,0 +1,93 @@
+UNIDADES_POR_COMPASSO = 1
+TAMANHO_BLOCO = 2
+(1 ACORDE POR DOIS COMPASSOS)
+
+compasso nota_dominante acorde funcao
+0         1              E      E      T
+1         2             F#      E      T
+2         3              E      A     SD
+3         4              B      A     SD
+4         5              E      E      T
+5         6              E      E      T
+6         7              E      A     SD
+7         8              B      A     SD
+
+UNIDADES_POR_COMPASSO = 1
+TAMANHO_BLOCO = 1
+(1 ACORDE POR COMPASSO)
+
+compasso nota_dominante acorde funcao
+0         1              E      E      T
+1         2             F#      B      D
+2         3              E      E      T
+3         4              B      B      D
+4         5              E      E      T
+5         6              E    C#m      T
+6         7              E      A     SD
+7         8              B      B      D
+
+UNIDADES_POR_COMPASSO = 2
+TAMANHO_BLOCO = 1
+CUSTO_FORA_DO_TEMPO_FORTE = 0.0
+(Permissao alta de trocas de meio compasso)
+
+compasso nota_dominante acorde funcao
+0          1              E    C#m      T
+1          1              E      E      T
+2          2              E    C#m      T
+3          2             F#    F#m     SD
+4          3              E      E      T
+5          3              E    C#m      T
+6          4             C#      A     SD
+7          4              B      B      D
+8          5              E      E      T
+9          5              E      A     SD
+10         6              E      E      T
+11         6             F#    F#m     SD
+12         7              E      E      T
+13         7              E      A     SD
+14         8              B      B      D
+15         8              B    G#m      T
+
+CUSTO_FORA_DO_TEMPO_FORTE = 0.6
+(PERMISSAO MEDIANA)
+
+compasso nota_dominante acorde funcao
+0          1              E      E      T
+1          1              E      E      T
+2          2              E    C#m      T
+3          2             F#    F#m     SD
+4          3              E      E      T
+5          3              E      E      T
+6          4             C#      A     SD
+7          4              B      B      D
+8          5              E      E      T
+9          5              E      E      T
+10         6              E      E      T
+11         6             F#    F#m     SD
+12         7              E      E      T
+13         7              E      A     SD
+14         8              B      B      D
+15         8              B    G#m      T
+
+
+CUSTO_FORA_DO_TEMPO_FORTE = 1.2
+(Permissao Baixa)
+
+compasso nota_dominante acorde funcao
+0          1              E      E      T
+1          1              E      E      T
+2          2              E    C#m      T
+3          2             F#    F#m     SD
+4          3              E      E      T
+5          3              E      E      T
+6          4             C#      B      D
+7          4              B      B      D
+8          5              E      E      T
+9          5              E      E      T
+10         6              E      E      T
+11         6             F#    F#m     SD
+12         7              E      E      T
+13         7              E      E      T
+14         8              B      B      D
+15         8              B      B      D

@@ -1,0 +1,81 @@
+UNIDADES_POR_COMPASSO = 1
+TAMANHO_BLOCO = 2
+(1 ACORDE POR DOIS COMPASSOS)
+
+compasso acorde funcao
+0         1     Em      T
+1         2     Em      T
+2         3      D     SD
+3         4      D     SD
+4         5     Em      T
+5         6     Em      T
+6         7      B      D
+
+UNIDADES_POR_COMPASSO = 1
+TAMANHO_BLOCO = 1
+(1 ACORDE POR COMPASSO)
+
+compasso acorde funcao
+0         1     Em      T
+1         2      D     SD
+2         3      B      D
+3         4      G      T
+4         5      C      T
+5         6     Em      T
+6         7      B      D
+
+UNIDADES_POR_COMPASSO = 2
+TAMANHO_BLOCO = 1
+CUSTO_FORA_DO_TEMPO_FORTE = 0.0
+(Permissao alta de trocas de meio compasso)
+
+compasso acorde funcao
+0          1     Em      T
+1          1      D     SD
+2          2     Em      T
+3          2      D     SD
+4          3     Em      T
+5          3     Am     SD
+6          4      G      T
+7          4     Am     SD
+8          5     Em      T
+9          5      D     SD
+10         6     Em      T
+11         6     Am     SD
+12         7      B      D
+
+CUSTO_FORA_DO_TEMPO_FORTE = 0.6
+(PERMISSAO MEDIANA)
+
+compasso acorde funcao
+0          1     Em      T
+1          1      D     SD
+2          2     Em      T
+3          2      D     SD
+4          3     Em      T
+5          3     Am     SD
+6          4      G      T
+7          4      G      T
+8          5     Em      T
+9          5      D     SD
+10         6     Em      T
+11         6     Em      T
+12         7      B      D
+
+CUSTO_FORA_DO_TEMPO_FORTE = 1.2
+(Permissao Baixa)
+
+compasso acorde funcao
+0          1     Em      T
+1          1     Em      T
+2          2     Em      T
+3          2     Em      T
+4          3     Am     SD
+5          3     Am     SD
+6          4      G      T
+7          4      G      T
+8          5     Em      T
+9          5      D     SD
+10         6     Em      T
+11         6     Em      T
+12         7      B      D

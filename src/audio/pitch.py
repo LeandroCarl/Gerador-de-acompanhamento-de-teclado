@@ -90,11 +90,13 @@ def extract_vocal_activity(
     bpm,
     offset=0.0,
     beats_per_bar=4,
+    unidades_por_compasso=1,
     conf_thresh=0.0,
     min_voiced_ratio=0.15,
     total_duration=None,
 ):
-    """Calcula a atividade vocal por compasso utilizando as métricas extraídas pelo pYIN.
+    """Calcula a atividade vocal por unidade de tempo utilizando as métricas
+    extraídas pelo pYIN.
 
     Args:
         times (np.ndarray): Vetor de timestamps em segundos dos frames do pYIN.
@@ -102,46 +104,53 @@ def extract_vocal_activity(
         confidence (np.ndarray): Probabilidade/grau de confiança do tom.
         bpm (float): Tempos por minuto.
         beats_per_bar (int): Batidas por compasso.
-        conf_thresh (float): Limiar mínimo de confiança para considerar o frame
-          como voz válida.
-        min_voiced_ratio (float): Proporção mínima de frames com voz no
-          compasso (ex: 0.15 = 15%) para considerar o compasso ativo.
+        unidades_por_compasso (int): Em quantas partes iguais cada compasso é
+          subdividido para a análise (1 = compasso inteiro, 2 = meio
+          compasso, 4 = cada tempo, etc).
+        conf_thresh (float): Limiar mínimo de confiança para considerar o
+          frame como voz válida.
+        min_voiced_ratio (float): Proporção mínima de frames com voz na
+          unidade (ex: 0.15 = 15%) para considerar a unidade ativa.
         total_duration (float, optional): Duração total em segundos. Se None,
           usa o último timestamp.
 
     Returns:
-        list[bool]: Lista booleana com True para compassos com canto e False
-        para pausas.
+        list[bool]: Lista booleana com True para unidades com canto e False
+        para pausas — uma entrada por unidade (compasso inteiro ou
+        subdivisão, dependendo de unidades_por_compasso).
     """
-    duracao_compasso_seg = (60.0 / bpm) * beats_per_bar
-    t_anacruse = offset * (60.0 / bpm)
-    # Determina a duração total para calcular a quantidade de compassos
+    seconds_per_beat = 60.0 / bpm
+    seconds_per_bar = seconds_per_beat * beats_per_bar
+    seconds_per_unidade = seconds_per_bar / unidades_por_compasso
+    t_anacruse = offset * seconds_per_beat
+
+    # Determina a duração total para calcular a quantidade de unidades
     if total_duration is None:
         total_duration = times[-1] if len(times) > 0 else 0.0
 
-    total_compassos = int(np.ceil((total_duration - t_anacruse)/ duracao_compasso_seg))
+    total_unidades = int(np.ceil((total_duration - t_anacruse) / seconds_per_unidade))
     atividade = []
 
-    for i in range(total_compassos):
-        t_inicio = t_anacruse + i * duracao_compasso_seg
-        t_fim = t_inicio + duracao_compasso_seg
+    for i in range(total_unidades):
+        t_inicio = t_anacruse + i * seconds_per_unidade
+        t_fim = t_inicio + seconds_per_unidade
 
-        # Recorta os frames do pYIN pertencentes ao compasso atual
-        mask_compasso = (times >= t_inicio) & (times < t_fim)
-        freq_compasso = frequency[mask_compasso]
-        conf_compasso = confidence[mask_compasso]
+        # Recorta os frames do pYIN pertencentes à unidade atual
+        mask_unidade = (times >= t_inicio) & (times < t_fim)
+        freq_unidade = frequency[mask_unidade]
+        conf_unidade = confidence[mask_unidade]
 
-        if len(freq_compasso) == 0:
+        if len(freq_unidade) == 0:
             atividade.append(False)
             continue
 
         # Identifica frames onde há frequência válida e confiança acima do limiar
-        frames_com_voz = (freq_compasso > 0.0) & (conf_compasso >= conf_thresh)
+        frames_com_voz = (freq_unidade > 0.0) & (conf_unidade >= conf_thresh)
 
-        # Ratio de frames cantados em relação ao total de frames do compasso
-        razao_cantada = np.sum(frames_com_voz) / len(freq_compasso)
+        # Razão de frames cantados em relação ao total de frames da unidade
+        razao_cantada = np.sum(frames_com_voz) / len(freq_unidade)
 
-        # O compasso é considerado ativo se a proporção ultrapassar o mínimo configurado
+        # A unidade é considerada ativa se a proporção ultrapassar o mínimo configurado
         atividade.append(razao_cantada >= min_voiced_ratio)
 
     return atividade

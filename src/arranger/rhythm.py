@@ -5,7 +5,9 @@ def gerar_bloco_sustentado(t_start, duracao_seg, nota_baixo, voicing_md, bpm=120
     """Estado 0: Baixa densidade.
 
     Notas longas dão espaço à voz. O baixo sustenta o segmento inteiro; a
-    mão direita ataca a cada 2 tempos dentro do segmento 
+    mão direita ataca a cada 2 tempos dentro do segmento (equivalente aos
+    "tempos 1 e 3" do padrão original de compasso inteiro — mas agora
+    generalizado para qualquer duração de segmento).
     """
     seconds_per_beat = 60.0 / bpm
     n_beats = max(1, round(duracao_seg / seconds_per_beat))
@@ -120,10 +122,6 @@ def gerar_arpejo_ascendente(t_start, duracao_seg, nota_baixo, voicing_md, bpm=12
 
 def gerar_fill_in_agudo(t_start, duracao_seg, nota_baixo, voicing_md, bpm=120):
     """Estado 3: Alta densidade (Preenchimento).
-
-    Se o segmento tiver pelo menos 2 tempos, divide-o ao meio: primeira
-    metade com baixo + acorde simples, segunda metade com fraseado rápido
-    em semicolcheias no registro agudo. 
     """
     seconds_per_beat = 60.0 / bpm
     dt_16th = seconds_per_beat / 4
@@ -132,7 +130,7 @@ def gerar_fill_in_agudo(t_start, duracao_seg, nota_baixo, voicing_md, bpm=120):
     eventos = []
     voicing_agudo = [n + 12 for n in voicing_md]
 
-    if n_beats >= 2:
+    if n_beats >= 4:
         metade_seg = duracao_seg / 2
 
         # Mão Esquerda cobrindo a primeira metade do segmento
@@ -184,9 +182,9 @@ def gerar_fill_in_agudo(t_start, duracao_seg, nota_baixo, voicing_md, bpm=120):
 
 
 def gerar_padrao_por_estado(estado, t_start, duracao_seg, nota_baixo, voicing_md, bpm=120):
-    """Mapeia o estado atual para a função rítmica correspondente, 
-       aplicada a um segmento de duração `duracao_seg` (em
-       segundos) iniciando em `t_start` (tempo absoluto, em segundos).
+    """Mapeia o estado atual para a função rítmica
+    correspondente, aplicada a um segmento de duração `duracao_seg` (em
+    segundos) iniciando em `t_start` (tempo absoluto, em segundos).
     """
     mapa_estados = {
         0: gerar_bloco_sustentado,

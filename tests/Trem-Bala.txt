@@ -1,0 +1,57 @@
+UNIDADES_POR_COMPASSO = 1
+TAMANHO_BLOCO = 2
+(1 ACORDE POR DOIS COMPASSOS)
+
+compasso nota_dominante acorde funcao
+0         1             F#      B      T
+1         2              B      B      T
+2         3             F#    C#m     SD
+3         4             C#    C#m     SD
+
+UNIDADES_POR_COMPASSO = 1
+TAMANHO_BLOCO = 1
+(1 ACORDE POR COMPASSO)
+
+compasso nota_dominante acorde funcao
+0         1             F#     F#      D
+1         2              B      B      T
+2         3             F#    D#m      T
+3         4             C#    C#m     SD
+
+UNIDADES_POR_COMPASSO = 2
+TAMANHO_BLOCO = 1
+CUSTO_FORA_DO_TEMPO_FORTE = 0.0
+(Permissao alta de trocas de meio compasso)
+
+compasso nota_dominante acorde funcao
+0         1             F#     F#      D
+1         1             F#    D#m      T
+2         2              B      B      T
+3         2             D#    D#m      T
+4         3             F#     F#      D
+5         3              B      B      T
+6         4             C#    C#m     SD
+
+CUSTO_FORA_DO_TEMPO_FORTE = 0.6
+(PERMISSAO MEDIANA)
+
+compasso nota_dominante acorde funcao
+0         1             F#     F#      D
+1         1             F#    D#m      T
+2         2              B      B      T
+3         2             D#      B      T
+4         3             F#     F#      D
+5         3              B      B      T
+6         4             C#    C#m     SD
+
+CUSTO_FORA_DO_TEMPO_FORTE = 1.2
+(Permissao Baixa)
+
+compasso nota_dominante acorde funcao
+0         1             F#     F#      D
+1         1             F#     F#      D
+2         2              B      B      T
+3         2             D#      B      T
+4         3             F#      B      T
+5         3              B      B      T
+6         4             C#    C#m     SD
