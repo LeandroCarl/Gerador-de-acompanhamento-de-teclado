@@ -36,13 +36,13 @@ compasso acorde funcao
 3          2      D     SD
 4          3     Em      T
 5          3     Am     SD
-6          4      G      T
-7          4     Am     SD
+6          4      D     SD
+7          4      G      T
 8          5     Em      T
 9          5      D     SD
 10         6     Em      T
-11         6     Am     SD
-12         7      B      D
+11         6     Em      T
+12         7      D     SD
 
 CUSTO_FORA_DO_TEMPO_FORTE = 0.6
 (PERMISSAO MEDIANA)
@@ -60,22 +60,22 @@ compasso acorde funcao
 9          5      D     SD
 10         6     Em      T
 11         6     Em      T
-12         7      B      D
+12         7      D     SD
 
 CUSTO_FORA_DO_TEMPO_FORTE = 1.2
 (Permissao Baixa)
 
-compasso acorde funcao
-0          1     Em      T
-1          1     Em      T
-2          2     Em      T
-3          2     Em      T
-4          3     Am     SD
-5          3     Am     SD
-6          4      G      T
-7          4      G      T
-8          5     Em      T
-9          5      D     SD
-10         6     Em      T
-11         6     Em      T
-12         7      B      D
+    compasso nota_dominante acorde funcao
+0          1              E     Em      T
+1          1              D     Em      T
+2          2              E     Em      T
+3          2              D      D     SD
+4          3              D     Em      T
+5          3              A     Am     SD
+6          4              A      G      T
+7          4              G      G      T
+8          5              G     Em      T
+9          5              D      D     SD
+10         6              E     Em      T
+11         6              E     Em      T
+12         7              E      D     SD
