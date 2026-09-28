@@ -1,5 +1,4 @@
 import numpy as np
-
 from src.arranger.drums import gerar_faixa_bateria
 from src.arranger.rhythm import gerar_padrao_por_estado
 from src.arranger.voicing import (
@@ -188,3 +187,50 @@ def arrange_chord_sequence(
         todos_eventos.extend(eventos_bateria)
 
     return todos_eventos
+
+def humanizar_eventos_midi(
+    eventos_midi, vel_std=5, timing_std=0.010, roll_chord_ms=0.012
+):
+    """Aplica variações humanas de dinâmica e tempo aos eventos MIDI.
+
+    Args:
+        eventos_midi (list[dict]): Lista de eventos gerados.
+        vel_std (int): Desvio padrão da intensidade (Velocity).
+        timing_std (float): Desvio temporal aleatório em segundos (ex: 0.010s =
+          10ms).
+        roll_chord_ms (float): Micro-atraso entre as notas de um mesmo acorde
+          (dedilhado humano).
+
+    Returns:
+        list[dict]: Lista de eventos humanizados.
+    """
+    eventos_humanizados = []
+
+    # Agrupa notas por tempo de início exato para identificar acordes da Mão Direita
+    tempo_grupos = {}
+    for ev in eventos_midi:
+        t = ev["start"]
+        tempo_grupos.setdefault(t, []).append(ev.copy())
+
+    for t_original, grupo in tempo_grupos.items():
+        # Separa a nota do baixo (mão esquerda) das notas do acorde (mão direita)
+        notas_ordenadas = sorted(grupo, key=lambda x: x["note"])
+
+        for idx, ev in enumerate(notas_ordenadas):
+            # 1. Micro-timing jitter (atraso/antecipação aleatória de ~5 a 10ms)
+            delta_tempo = np.random.normal(0, timing_std)
+
+            # 2. Staggering/Roll: em acordes, dedos diferentes tocam em instantes levemente diferentes
+            # A nota mais grave do acorde soa ligeiramente antes das mais agudas
+            atraso_dedo = idx * roll_chord_ms if len(grupo) > 1 else 0.0
+
+            ev["start"] = max(0.0, round(ev["start"] + delta_tempo + atraso_dedo, 4))
+
+            # 3. Variação de Velocity (dinâmica da força do dedo)
+            delta_vel = int(np.random.normal(0, vel_std))
+            ev["velocity"] = int(np.clip(ev["velocity"] + delta_vel, 30, 127))
+
+            eventos_humanizados.append(ev)
+
+    # Reordena a lista por tempo de início ajustado
+    return sorted(eventos_humanizados, key=lambda x: x["start"])
