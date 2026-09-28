@@ -20,7 +20,6 @@ def export_events_to_midi(
         pretty_midi.PrettyMIDI: Objeto MIDI gerado.
     """
     pm = pretty_midi.PrettyMIDI()
-
     # Agrupa eventos por canal, preservando a ordem de chegada
     eventos_por_canal = {}
     for ev in eventos_midi:
@@ -66,28 +65,9 @@ def render_audio_wav(
     Returns:
         np.ndarray: Vetor do sinal de áudio gerado.
     """
-    audio_data = pm.fluidsynth(fs=sr, soundfont_path=soundfont_path)
+    audio_data = pm.fluidsynth(fs=sr, sf2_path=soundfont_path)
     sf.write(caminho_wav, audio_data, sr)
     return audio_data
-
-"""Sintetiza áudio de preview a partir de um pretty_midi.PrettyMIDI que
-contém instrumentos de bateria (is_drum=True).
-
-Por que isso existe
---------------------
-`pretty_midi.Instrument.synthesize()` (o sintetizador de onda senoidal
-usado por `PrettyMIDI.synthesize()`) devolve silêncio para instrumentos
-com is_drum=True: ele soa cada nota como um tom puro na frequência do
-"pitch" da nota, e no mapa de percussão GM o número da nota não é uma
-afinação — é o índice de um instrumento (36=bumbo, 38=caixa, 42=chimbal
-etc). Sintetizar isso como tom não faria sentido musical, então a lib
-zera esses instrumentos nesse método.
-
-O arquivo .mid exportado por midi_export.py continua correto — um DAW ou
-sintetizador de verdade (ou fluidsynth com um soundfont GM) toca a
-bateria normalmente. Isso aqui resolve só a pré-visualização dentro do
-notebook (Audio(...)), sem precisar instalar fluidsynth/soundfont.
-"""
 
 def _envelope_exponencial(n_samples, fs, decaimento=30.0):
     t = np.arange(n_samples) / fs
@@ -169,13 +149,7 @@ def synthesize_with_drums(pm, fs=22050, drum_gain=2.5):
     """Substitui pm.synthesize(fs=fs) quando o PrettyMIDI tem bateria.
     Args:
         drum_gain (float): ganho aplicado só na bateria antes de somar
-            com o resto da mixagem. Necessário porque percussão é feita
-            de transientes curtos (energia concentrada em poucos ms),
-            enquanto instrumentos sustentados (acordes, voz) têm energia
-            contínua ao longo do tempo — numa soma linear simples, a
-            bateria some proporcionalmente mesmo com amplitude de pico
-            razoável. Ajuste conforme o "peso" que você quiser dar a ela
-            na mixagem; 1.0 desliga esse boost.
+            com o resto da mixagem.
     """
     total_duration = pm.get_end_time() + 0.5
     n_samples_total = int(total_duration * fs) + 1
